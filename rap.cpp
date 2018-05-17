@@ -114,6 +114,9 @@ inline probDict toDict(string filePath) {
             words.insert(words.end(), wordsLine.begin(), wordsLine.end());
         }
     }
+
+    lyrics.close();
+
     for (int i = 0; i < ((int)words.size()) - 1; i++) {
         counter[words[i]][words[i + 1]]++;
     }
@@ -172,6 +175,10 @@ int main(int argc, char const *argv[]) {
     }
 
     cout << outputLyrics << endl;
+    ofstream output("output.txt");
+    
+    output << outputLyrics;
+    output.close();
 
     return 0;
 }
