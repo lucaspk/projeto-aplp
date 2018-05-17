@@ -141,12 +141,37 @@ inline void printMap(map<string, double> probs) {
 
 int main(int argc, char const *argv[]) {
     probDict rapProbDict = toDict("lyrics2.txt");
-    string word;
-    cout << "What do you want to start your rap with? > ";
-    cin >> word;
-    cout << endl << "Alright, here's your rap:" << endl;
-    cout << makeRap(word, rapProbDict) << endl;
+    probDict popProbDict = toDict("lyrics3.txt");
 
+    string musicGenre;
+    string word;
+    unsigned int wordsNumber;
+
+    string outputLyrics;
+    
+    cout << "What music genre do you want? Type 'rap', 'pop', 'random' or 'mixed' > ";
+    cin >> musicGenre;
+
+    cout << "What do you want to start your lyrics with? > ";
+    cin >> word;
+    
+    cout << "How many words in the lyrics do you want? > ";
+    cin >> wordsNumber;
+    
+    cout << endl << "Alright, here's your lyrics:" << endl;
+    
+    string rapLyrics = makeRap(word, rapProbDict, wordsNumber);
+    string popLyrics = makeRap(word, popProbDict, wordsNumber);
+    
+    if (musicGenre == "rap") {
+        outputLyrics = rapLyrics;
+    } else if (musicGenre == "pop") {
+        outputLyrics = popLyrics;
+    } else if (musicGenre == "mixed") {
+        outputLyrics = rapLyrics + " " + popLyrics;
+    }
+
+    cout << outputLyrics << endl;
 
     return 0;
 }
