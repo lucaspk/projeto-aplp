@@ -150,6 +150,8 @@ int main(int argc, char const *argv[]) {
     string word;
     unsigned int wordsNumber;
 
+    ofstream outFile;
+
     string outputLyrics;
     
     cout << "What music genre do you want? Type 'rap', 'pop', 'random' or 'mixed' > ";
@@ -168,17 +170,19 @@ int main(int argc, char const *argv[]) {
     
     if (musicGenre == "rap") {
         outputLyrics = rapLyrics;
+        outFile.open("rap.txt", ios_base::app);
+        outFile << "\n" + rapLyrics; 
     } else if (musicGenre == "pop") {
         outputLyrics = popLyrics;
+        outFile.open("pop.txt", ios_base::app);
+        outFile << "\n" + popLyrics; 
     } else if (musicGenre == "mixed") {
         outputLyrics = rapLyrics + " " + popLyrics;
     }
 
+    outFile.close();
+
     cout << outputLyrics << endl;
-    ofstream output("output.txt");
-    
-    output << outputLyrics;
-    output.close();
 
     return 0;
 }
