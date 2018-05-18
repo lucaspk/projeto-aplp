@@ -143,8 +143,8 @@ inline void printMap(map<string, double> probs) {
 }
 
 int main(int argc, char const *argv[]) {
-    probDict rapProbDict = toDict("lyrics2.txt");
-    probDict popProbDict = toDict("lyrics3.txt");
+    probDict rapProbDict = toDict("rap.txt");
+    probDict popProbDict = toDict("pop.txt");
 
     string musicGenre;
     string word, endWord;
