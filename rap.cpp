@@ -147,7 +147,8 @@ int main(int argc, char const *argv[]) {
     probDict popProbDict = toDict("lyrics3.txt");
 
     string musicGenre;
-    string word;
+    string word, endWord;
+
     unsigned int wordsNumber;
 
     ofstream outFile;
@@ -157,16 +158,19 @@ int main(int argc, char const *argv[]) {
     cout << "What music genre do you want? Type 'rap', 'pop', 'random' or 'mixed' > ";
     cin >> musicGenre;
 
-    cout << "What do you want to start your lyrics with? > ";
+    cout << "Which word to start your lyrics with? > ";
     cin >> word;
+
+    cout << "Which word to end your lyrics with? > ";
+    cin >> endWord;
     
     cout << "How many words in the lyrics do you want? > ";
     cin >> wordsNumber;
     
     cout << endl << "Alright, here's your lyrics:" << endl;
     
-    string rapLyrics = makeRap(word, rapProbDict, wordsNumber);
-    string popLyrics = makeRap(word, popProbDict, wordsNumber);
+    string rapLyrics = makeRap(word, rapProbDict, wordsNumber) + " " + endWord;
+    string popLyrics = makeRap(word, popProbDict, wordsNumber) + " " + endWord;
     
     if (musicGenre == "rap") {
         outputLyrics = rapLyrics;
@@ -178,6 +182,17 @@ int main(int argc, char const *argv[]) {
         outFile << "\n" + popLyrics; 
     } else if (musicGenre == "mixed") {
         outputLyrics = rapLyrics + " " + popLyrics;
+    } else {
+        double randProb = randomDoubleNumb();
+        if (randProb < 0.5) {
+            outputLyrics = popLyrics;
+            outFile.open("pop.txt", ios_base::app);
+            outFile << "\n" + popLyrics; 
+        } else {
+            outputLyrics = rapLyrics;
+            outFile.open("rap.txt", ios_base::app);
+            outFile << "\n" + rapLyrics;
+        }
     }
 
     outFile.close();
