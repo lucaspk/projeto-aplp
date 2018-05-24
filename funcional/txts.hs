@@ -1,6 +1,9 @@
 module Txts (
     welcome,
-    songStyle
+    songGenre,
+    firstWord,
+    lastWord,
+    wordsNumber
 ) where
 
 welcome = do
@@ -16,5 +19,15 @@ welcome = do
     putStrLn("\n")
     return()
 
-songStyle = do
+songGenre = do
     putStrLn("\nWhat music genre do you want? Type 'rap', 'pop', 'random' or 'mixed'?")
+
+firstWord = do
+    putStrLn("\nWhich word to start your lyrics with?")
+    
+lastWord = do
+    putStrLn("\nWhich word to end your lyrics with?")
+
+wordsNumber = do
+    putStrLn("\nHow many words in the lyrics do you want?")
+    
