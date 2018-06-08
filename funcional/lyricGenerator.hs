@@ -20,21 +20,12 @@ main = do
 
     wordsNumber <- getLine
 
-    dictionary <- readFile (selectGenre genre)
-    
-    putStrLn("\nPronto")
+    popLyrics <- readFile "pop.txt"
+    rapLyrics <- readFile "rap.txt"
 
+    Txts.ready
 
+    print (take 50 popLyrics)
 
-selectGenre "rap" = "rap.txt"
-selectGenre "pop" = "pop.txt"
-
- 
-
-{-
-
-    Print on screen
-
--}
 
 

@@ -3,17 +3,18 @@ module Txts (
     songGenre,
     firstWord,
     lastWord,
-    wordsNumber
+    wordsNumber,
+    ready
 ) where
 
 welcome = do
     putStrLn("\t###############################################################")
     putStrLn("\t##                                                           ##")
-    putStrLn("\t##   ###    ### ##    ## ##### ## ######    ######           ##")
-    putStrLn("\t##   ####  #### ##    ## ##    ## ##  ##    ##               ##")
-    putStrLn("\t##   ## #### ## ##    ## ##### ## ##        ## ####          ##")
-    putStrLn("\t##   ##  ##  ## ##    ##    ## ## ##  ##    ##  ##           ##")
-    putStrLn("\t##   ##      ##  ######  ##### ## ######    ###### ENERATOR  ##")
+    putStrLn("\t##   ##   ##    ## #######  ##  ######    ######             ##")
+    putStrLn("\t##   ##    ##  ##  ##   ##  ##  ##  ##    ##                 ##")
+    putStrLn("\t##   ##     ####   ######   ##  ##        ## ####            ##")
+    putStrLn("\t##   ##      ##    ##   ##  ##  ##  ##    ##  ##             ##")
+    putStrLn("\t##   ######  ##    ##    ## ##  ######    ###### ENERATOR    ##")
     putStrLn("\t##                                                           ##")
     putStrLn("\t###############################################################")
     putStrLn("\n")
@@ -31,3 +32,5 @@ lastWord = do
 wordsNumber = do
     putStrLn("\nHow many words in the lyrics do you want?")
     
+ready = do
+    putStrLn("\nAlright, here's your lyrics:")
