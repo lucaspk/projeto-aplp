@@ -47,9 +47,7 @@ main = do
     --print (subMap (Map.singleton "default" (Map.singleton "default" 1)) "default")
     --print (Map.insert "default2" (Map.singleton "default2" 1) mapDic)
     --print (Map.keys (Map.elems (Map.singleton "default" (Map.singleton "default2" 1))))
-    let test = (addAllToMap mapDic (take 200 part4))
-    --print (test)
-
+    let test = (addAllToMap mapDic (take 500 part4))
     print (test)
 
 subMap :: Map String (Map String Int) -> String -> Maybe (Map String Int)
@@ -72,10 +70,10 @@ addToMap map value = if (Map.notMember (fst value) map) then Map.insert (fst val
                           --  if (Map.notMember (snd value) (Map.findWithDefault "not" (fst value) map)) then
                                 --Map.insert (snd value) (Map.singleton (snd value) 1) map
                             --else
-                        if (isMember (findSubMap map (fst value)) (snd value) ) then
-                            Map.insert (fst value) (Map.singleton (snd value) 2) map
+                        if (isMember (findSubMap map (fst value)) (snd value)) then
+                            updateSubMap map value
                         else
-                            Map.insert (fst value) (Map.singleton (snd value) 999) map
+                            Map.insert (fst value) (Map.singleton (snd value) 1) map
                                 {-addToMap :: Maybe Map String (Map String Int) -> (String, String) -> Map String (Map String Int)
 addToMap map value = if (Map.notMember (fst value) map) then Map.insert (fst value) (Map.singleton (snd value) 1) map
                      else
@@ -84,6 +82,12 @@ addToMap map value = if (Map.notMember (fst value) map) then Map.insert (fst val
                         else 
                             Map.update (Map.insertWith (+) (snd value) 1 (Map.lookup (fst value) map)) (fst value) map
 -}
+
+updateSubMap :: Map String (Map String Int) -> (String, String) -> Map String (Map String Int)
+updateSubMap map value = Map.insert (fst value) (Map.insert (snd value) (getValueSubMap map value) (findSubMap map (fst value))) map
+
+getValueSubMap :: Map String (Map String Int) -> (String, String) -> Int
+getValueSubMap map value = (Map.findWithDefault 0 (snd value) (Map.findWithDefault (Map.singleton "test" 0) (fst value) map)) + 1
 
 findSubMap :: Map String (Map String Int) -> String -> Map [Char] Int
 findSubMap map key = Map.findWithDefault (Map.singleton "test" 2) key map
