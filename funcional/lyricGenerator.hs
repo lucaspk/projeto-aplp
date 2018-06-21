@@ -44,20 +44,52 @@ main = do
 
     --let meuMapSub = SubMap2 (Map.singleton "casa" 1)
     let mapDic = Map.singleton "default" (Map.singleton "default" 1)
-    print (addAllToMap mapDic part4)
-    
-{-
-- Insere um elemento na estrutura. Caso o elemento ja existe, sua quantidade na estrutura sera incrementada.
--}
---insert elem (Bag b) = Bag (Map.insertWith' (+) elem 1 b)
+    --print (subMap (Map.singleton "default" (Map.singleton "default" 1)) "default")
+    --print (Map.insert "default2" (Map.singleton "default2" 1) mapDic)
+    --print (Map.keys (Map.elems (Map.singleton "default" (Map.singleton "default2" 1))))
+    let test = (addAllToMap mapDic (take 200 part4))
+    --print (test)
 
+    print (test)
+
+subMap :: Map String (Map String Int) -> String -> Maybe (Map String Int)
+subMap map key = Map.lookup key map
+
+--mapInsert :: Map String (Map String Int) -> (String, String) -> Map String Int
+--mapInsert map value = Map.insert (snd value) 1 (subMap map (fst value))
 
 --addToMap :: MapDic String b -> [(String, String)] -> Bool
 --addToMap map (x:xs) = if not (Map.member (fst x) map) then False
 --                        else True
-                   
+
 addToMap :: Map String (Map String Int) -> (String, String) -> Map String (Map String Int)
-addToMap map value = Map.insert (fst value) (Map.singleton (snd value) 1) map
+addToMap map value = if (Map.notMember (fst value) map) then Map.insert (fst value) (Map.singleton (snd value) 1) map
+                    --else ifMap.insert (snd value) (Map.singleton (snd value) 1) (Map.lookup (fst value) map)
+                    else
+                        --if (Map.member (snd value) (Map.elems )) then
+                       --     Map.insert (fst value) ((fst value) (Map.singleton (snd value) 1)) map
+                        --else
+                          --  if (Map.notMember (snd value) (Map.findWithDefault "not" (fst value) map)) then
+                                --Map.insert (snd value) (Map.singleton (snd value) 1) map
+                            --else
+                        if (isMember (findSubMap map (fst value)) (snd value) ) then
+                            Map.insert (fst value) (Map.singleton (snd value) 2) map
+                        else
+                            Map.insert (fst value) (Map.singleton (snd value) 999) map
+                                {-addToMap :: Maybe Map String (Map String Int) -> (String, String) -> Map String (Map String Int)
+addToMap map value = if (Map.notMember (fst value) map) then Map.insert (fst value) (Map.singleton (snd value) 1) map
+                     else
+                        if (Map.notMember (snd value) (Map.lookup (fst value) map)) then
+                            Map.update (Map.insert (snd value) (Map.singleton (snd value) 1) (Map.lookup (fst value) map)) (fst value) map
+                        else 
+                            Map.update (Map.insertWith (+) (snd value) 1 (Map.lookup (fst value) map)) (fst value) map
+-}
+
+findSubMap :: Map String (Map String Int) -> String -> Map [Char] Int
+findSubMap map key = Map.findWithDefault (Map.singleton "test" 2) key map
+
+isMember :: Map [Char] Int -> String -> Bool
+isMember map value = if (Map.member value map) then True else False
 
 addAllToMap :: Map String (Map String Int) -> [(String, String)] -> Map String (Map String Int)
 addAllToMap map [] = map
