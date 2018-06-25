@@ -42,28 +42,26 @@ main = do
     -- Zip a list into 2 lists
     let part4 = myZip (tail part3) (init part3)
 
-    let mapDicInitial = Map.singleton "default" (Map.singleton "default" 1)
+    let mapDic = (addAllToMap Map.empty part4)
 
-    let mapDic = (addAllToMap mapDicInitial part4)
-
-    let freqProbInitial = Map.singleton "default" (Map.singleton "default" 1)
-    print freqProbInitial
-
-    let probDic = calculeAllProbDic (Map.toList mapDic) freqProbInitial
+    let probDic = calculeAllProbDic (Map.toList mapDic) Map.empty
 
     print (probDic)
 
-addProbs :: [(String, Int)] -> Int -> Map String Int -> Map String Int
+divid :: Int -> Int -> Float
+divid a b = (fromIntegral a) / (fromIntegral b)
+
+addProbs :: [(String, Int)] -> Int -> Map String Float -> Map String Float
 addProbs [] sum map = map
-addProbs (x:xs) sum map = addProbs xs sum (Map.insert (fst x) (sum) map)
+addProbs (x:xs) sum map = addProbs xs sum (Map.insert (fst x) (divid (snd x) sum) map)
 
 calculeMapSum :: [(String, Int)] -> Int
 calculeMapSum list = sum [snd x | x <- list]
 
-calculeProbDic :: Map String (Map String Int) -> (String, (Map String Int)) -> Map String (Map String Int)
-calculeProbDic map value = Map.insert (fst value) (addProbs (Map.toList (snd value)) (calculeMapSum (Map.toList (snd value))) (Map.singleton "default" 1)) map
+calculeProbDic :: Map String (Map String Float) -> (String, (Map String Int)) -> Map String (Map String Float)
+calculeProbDic map value = Map.insert (fst value) (addProbs (Map.toList (snd value)) (calculeMapSum (Map.toList (snd value))) (Map.empty)) map
 
-calculeAllProbDic :: [(String, (Map String Int))] -> Map String (Map String Int) -> Map String (Map String Int)
+calculeAllProbDic :: [(String, (Map String Int))] -> Map String (Map String Float) -> Map String (Map String Float)
 calculeAllProbDic [] map = map
 calculeAllProbDic (x:xs) map = calculeAllProbDic xs (calculeProbDic map x) 
 
@@ -72,13 +70,16 @@ subMap map key = Map.lookup key map
 
 
 addToMap :: Map String (Map String Int) -> (String, String) -> Map String (Map String Int)
-addToMap map value = if (Map.notMember (fst value) map) then Map.insert (fst value) (Map.singleton (snd value) 1) map
+addToMap map value = if (Map.notMember (fst value) map) then 
+                        Map.insert (fst value) (Map.singleton (snd value) 1) map
                     else
                         if (isMember (findSubMap map (fst value)) (snd value)) then
                             updateSubMap map value
                         else
-                            Map.insert (fst value) (Map.singleton (snd value) 1) map
-                        
+                            addNewToSubMap map value       
+
+addNewToSubMap :: Map String (Map String Int) -> (String, String) -> Map String (Map String Int)
+addNewToSubMap map (key, value) = Map.insert key (Map.insert value 1 (Map.findWithDefault Map.empty key map)) map
 
 updateSubMap :: Map String (Map String Int) -> (String, String) -> Map String (Map String Int)
 updateSubMap map value = Map.insert (fst value) (Map.insert (snd value) (getValueSubMap map value) (findSubMap map (fst value))) map
