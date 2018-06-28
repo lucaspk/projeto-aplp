@@ -24,6 +24,8 @@ main = do
     let pop = popLyrics :: String
     let rap = rapLyrics :: String
 
+    let lyrics = selectGenre genre pop rap
+
     Txts.lastWord
     lastWord <- getLine
 
@@ -33,7 +35,7 @@ main = do
 
     Txts.ready
 
-    let part3 = mySplit (==' ') (toLowerCase (replace rap))
+    let part3 = mySplit (==' ') (toLowerCase (replace lyrics))
     
     let part4 = myZip (tail part3) (init part3)
 
@@ -45,7 +47,23 @@ main = do
     
     putStrLn (intercalate " " arrayStrings)
 
-    
+    Txts.save
+
+    save <- getLine
+
+    if (save == "yes") then do
+        appendFile "rap.txt" (intercalate " " arrayStrings)
+        putStrLn("\nLyric saved!")
+    else do
+        putStrLn("\nOk!")
+        
+
+
+---------------------------------------------------------------
+selectGenre genre pop rap = if (genre == "pop") then pop
+                            else rap
+
+
 ------------------------MakeRap--------------------------------
 
 makeLyric :: Map String (Map String Float) -> Int -> [String] -> [String]

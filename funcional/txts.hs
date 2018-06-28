@@ -4,7 +4,8 @@ module Txts (
     firstWord,
     lastWord,
     wordsNumber,
-    ready
+    ready,
+    save
 ) where
 
 welcome = do
@@ -34,3 +35,6 @@ wordsNumber = do
     
 ready = do
     putStrLn("\nAlright, here's your lyrics:")
+
+save = do
+    putStrLn("\nDo you want to save the lyric? (yes/no)")
