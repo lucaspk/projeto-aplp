@@ -22,7 +22,7 @@ welcome = do
     return()
 
 songGenre = do
-    putStrLn("\nWhat music genre do you want? Type 'rap', 'pop', 'random' or 'mixed'?")
+    putStrLn("\nWhat music genre do you want? Type 'rap', 'pop' or 'mixed'?")
 
 firstWord = do
     putStrLn("\nWhich word to start your lyrics with?")

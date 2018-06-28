@@ -1,9 +1,12 @@
 import System.Environment
 import Txts
 import Data.List 
+import Data.List (sortBy)
 import Data.Char
 import Data.Map (Map)
 import qualified Data.Map as Map
+import qualified System.Random as R
+import Control.Monad.Random
 
 
 data MapDic a b = MapDic (Map b (Map a Int)) deriving (Eq, Show)
@@ -42,8 +45,10 @@ main = do
     let mapDict = (addAllToMap Map.empty part4)
 
     let probDict = calculeAllProbDict (Map.toList mapDict) Map.empty
+    
+    probs <- evalRandIO $ dice 20
 
-    let arrayStrings = (makeLyric probDict wordsNumber [firstWord])
+    let arrayStrings = (makeLyric probDict wordsNumber [firstWord] probs)
     
     putStrLn (intercalate " " arrayStrings)
 
@@ -56,29 +61,50 @@ main = do
         putStrLn("\nLyric saved!")
     else do
         putStrLn("\nOk!")
-        
+    
 
-
+randomNumber :: (RandomGen g) => Rand g Float
+randomNumber = do
+      randomNumber <- getRandomR (0.0, 0.9)
+      return $ randomNumber
+    
+dice :: RandomGen g => Int -> Rand g [Float]
+dice n = sequence (replicate n randomNumber)
+    
 ---------------------------------------------------------------
 selectGenre genre pop rap = if (genre == "pop") then pop
-                            else rap
-
+                            else if (genre == "rap") then rap
+                            else (pop ++ rap)
 
 ------------------------MakeRap--------------------------------
 
-makeLyric :: Map String (Map String Float) -> Int -> [String] -> [String]
-makeLyric probDict 0 array = array
-makeLyric probDict wordsNumber array = makeLyric probDict (wordsNumber - 1) (array ++ [(markovNext (last array) probDict)])
+makeLyric :: Map String (Map String Float) -> Int -> [String] -> [Float] -> [String]
+makeLyric probDict 0 array probs = array
+makeLyric probDict wordsNumber array probs = makeLyric probDict (wordsNumber - 1) (array ++ [(markovNext (last array) probDict probs)]) probs
 
 
 ----------------------Markov_Next------------------------------
-markovNext :: String -> Map String (Map String Float) -> String
-markovNext current probDict = if (Map.member current probDict) then
-                                    getWord (probDict Map.! current)
-                              else "notOK"
+markovNext :: String -> Map String (Map String Float) -> [Float] -> String
+markovNext current probDict probs = if (Map.member current probDict) then
+                                        selectWord (addExtraProb probs (Map.toList (probDict Map.! current)))
+                                    else "hey"
 
-getWord :: Map String Float -> String
-getWord subMap = fst (last (Map.toList subMap))
+addExtraProb :: [Float] -> [(String, Float)] -> [(String, Float)]
+addExtraProb (x:xs) [] = []                       
+addExtraProb [x] (y:ys) = ((fst y), (snd y) + x) : addExtraProb [x] ys
+addExtraProb (x:xs) (y:ys) = ((fst y), (snd y) + x) : addExtraProb xs ys
+
+selectWord :: [(String, Float)] -> String
+selectWord words = fst (returnMaxProb ("a", -0.1) words)
+
+returnMaxProb :: (String, Float) -> [(String, Float)] -> (String, Float)
+returnMaxProb maxProb [] = maxProb
+returnMaxProb maxProb (x:xs) = if ((snd x) > (snd maxProb)) then returnMaxProb x xs
+                               else returnMaxProb maxProb xs
+    
+addExponencialProb :: [(String, Float)] -> [Float] -> [(String, Float)]
+addExponencialProb [] _ = []
+addExponencialProb (x:xs) (y:ys) = (fst x, (snd x) + y) : addExponencialProb xs ys
 
 ------------------------ToDict---------------------------------
 
