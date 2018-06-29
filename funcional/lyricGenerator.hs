@@ -46,26 +46,46 @@ main = do
 
     let probDict = calculeAllProbDict (Map.toList mapDict) Map.empty
     
-    probs <- evalRandIO $ dice 20
+    probs1 <- evalRandIO $ dice 20
+    probs2 <- evalRandIO $ dice 20
+    probs3 <- evalRandIO $ dice 20
+    probs4 <- evalRandIO $ dice 20
 
-    let arrayStrings = (makeLyric probDict wordsNumber [firstWord] probs)
+   -- let generatedLyric = generateLyric probDict wordsNumber probs firstWord
+
+    let lyric1 = (makeLyric probDict (div wordsNumber 4) [firstWord] probs1)
     
-    putStrLn (intercalate " " arrayStrings)
+    let lyric2 = (makeLyric probDict (div wordsNumber 4) [(last lyric1)] probs2)
+
+    let lyric3 = (makeLyric probDict (div wordsNumber 4) [(last lyric2)] probs3)
+
+    let lyric4 = (makeLyric probDict (div wordsNumber 4) [(last lyric3)] probs4)
+
+    let complete = ((lyric1 ++ (tail lyric2) ++ (tail lyric3) ++ (tail lyric4)))
+
+    putStr (intercalate " " complete)
 
     Txts.save
 
     save <- getLine
 
     if (save == "yes") then do
-        appendFile "rap.txt" (intercalate " " arrayStrings)
+        appendFile "rap.txt" (intercalate " " [])
         putStrLn("\nLyric saved!")
     else do
         putStrLn("\nOk!")
+
+    main
     
+--teste :: [String] -> Int -> [String]
+--teste (x:xs) index = 
+
+generateLyric :: Map String (Map String Float) -> Int -> [Float] -> String -> [String]
+generateLyric probDict wordsNum probs firstword = ["oi"]
 
 randomNumber :: (RandomGen g) => Rand g Float
 randomNumber = do
-      randomNumber <- getRandomR (0.0, 0.9)
+      randomNumber <- getRandomR (0.0, 0.4)
       return $ randomNumber
     
 dice :: RandomGen g => Int -> Rand g [Float]
