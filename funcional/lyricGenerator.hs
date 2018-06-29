@@ -1,9 +1,12 @@
 import System.Environment
 import Txts
 import Data.List 
+import Data.List (sortBy)
 import Data.Char
 import Data.Map (Map)
 import qualified Data.Map as Map
+import qualified System.Random as R
+import Control.Monad.Random
 
 
 data MapDic a b = MapDic (Map b (Map a Int)) deriving (Eq, Show)
@@ -24,8 +27,7 @@ main = do
     let pop = popLyrics :: String
     let rap = rapLyrics :: String
 
-    Txts.lastWord
-    lastWord <- getLine
+    let lyrics = selectGenre genre pop rap
 
     Txts.wordsNumber
     wordsNum <- getLine
@@ -33,34 +35,152 @@ main = do
 
     Txts.ready
 
-    let part3 = mySplit (==' ') (toLowerCase (replace rap))
+    let part3 = mySplit (==' ') (toLowerCase (replace lyrics))
     
     let part4 = myZip (tail part3) (init part3)
 
     let mapDict = (addAllToMap Map.empty part4)
 
     let probDict = calculeAllProbDict (Map.toList mapDict) Map.empty
-
-    let arrayStrings = (makeLyric probDict wordsNumber [firstWord])
     
-    putStrLn (intercalate " " arrayStrings)
+    probs1 <- evalRandIO $ dice 20
+    probs2 <- evalRandIO $ dice 20
+    probs3 <- evalRandIO $ dice 20
+    probs4 <- evalRandIO $ dice 20
 
+    let lyric1 = (makeLyric probDict (div wordsNumber 4) [firstWord] probs1)
     
+    let lyric2 = (makeLyric probDict (div wordsNumber 4) [(last lyric1)] probs2)
+
+    let lyric3 = (makeLyric probDict (div wordsNumber 4) [(last lyric2)] probs3)
+
+    let lyric4 = (makeLyric probDict (div wordsNumber 4) [(last lyric3)] probs4)
+
+    let complete = ((lyric1 ++ (tail lyric2) ++ (tail lyric3) ++ (tail lyric4)))
+
+    putStrLn (intercalate " " complete)
+
+    Txts.save
+
+    save <- getLine
+
+    if (save == "save") then
+        saveOnBase (intercalate " " complete) genre
+    else if (save == "edit") then
+        editor (intercalate " " complete) genre
+    else putStrLn("\nThe lyric was discarded!")
+
+    main
+
+editor :: String -> String -> IO()
+editor lyric genre = do
+
+    Txts.edit
+
+    operation <- getLine
+
+    let arrayLyric = mySplit (==' ') lyric
+
+    let operands = mySplit (==' ') operation
+
+    if ((head operands) == "1") then
+        showLyric (concat (intersperse " " (removeAll arrayLyric (last operands)))) genre
+    else if ((head operands) == "2") then
+        showLyric (concat (intersperse " " (editWordByName arrayLyric (last (init operands)) (last operands)))) genre
+    else if ((head operands) == "3") then
+        showLyric (concat (intersperse " " (addLineBreaker arrayLyric (last operands)))) genre
+    else if ((head operands) == "4") then
+        showLyric (concat (intersperse " " (addWordBefore arrayLyric (last (init operands)) (last operands)))) genre
+    else if ((head operands) == "5") then
+        saveOnBase lyric genre
+    else
+        main
+
+showLyric :: String -> String -> IO()
+showLyric str genre = do
+    putStrLn ("")
+    putStrLn (str)
+    editor str genre
+
+saveOnBase :: String -> String -> IO()
+saveOnBase lyric genre = do
+    putStrLn (lyric)
+    if (genre == "rap") then
+        appendFile "rap.txt" lyric
+    else 
+        appendFile "pop.txt" lyric
+
+------------------- Operations -----------------------------------
+removeAll :: [String] -> String -> [String]
+removeAll xs word = [x | x <- xs, x /= word]
+
+removeByIndex xs index = take (index - 1) xs ++ drop (index) xs
+
+editWordByName :: [String] -> String -> String -> [String]
+editWordByName [] oldWord newWord = []
+editWordByName (x:xs) oldWord newWord = if (x == oldWord) then
+                                            newWord : editWordByName xs oldWord newWord
+                                        else x : editWordByName xs oldWord newWord
+
+addWordBefore :: [String] -> String -> String -> [String]
+addWordBefore [] word newword = []
+addWordBefore (x:xs) word newword = if (x == word) then
+                                newword : x : addWordBefore xs word newword
+                            else x : addWordBefore xs word newword
+                                        
+
+addLineBreaker :: [String] -> String -> [String]
+addLineBreaker [] word = []
+addLineBreaker (x:xs) word = if (x == word) then
+                                (lineB x) : addLineBreaker xs word
+                            else x : addLineBreaker xs word
+
+lineB :: String -> String
+lineB = (++) "\n"
+------------------------------------------------------------------
+
+randomNumber :: (RandomGen g) => Rand g Float
+randomNumber = do
+      randomNumber <- getRandomR (0.0, 0.5)
+      return $ randomNumber
+    
+dice :: RandomGen g => Int -> Rand g [Float]
+dice n = sequence (replicate n randomNumber)
+    
+---------------------------------------------------------------
+selectGenre genre pop rap = if (genre == "pop") then pop
+                            else if (genre == "rap") then rap
+                            else (pop ++ rap)
+
 ------------------------MakeRap--------------------------------
 
-makeLyric :: Map String (Map String Float) -> Int -> [String] -> [String]
-makeLyric probDict 0 array = array
-makeLyric probDict wordsNumber array = makeLyric probDict (wordsNumber - 1) (array ++ [(markovNext (last array) probDict)])
+makeLyric :: Map String (Map String Float) -> Int -> [String] -> [Float] -> [String]
+makeLyric probDict 0 array probs = array
+makeLyric probDict wordsNumber array probs = makeLyric probDict (wordsNumber - 1) (array ++ [(markovNext (last array) probDict probs)]) probs
 
 
 ----------------------Markov_Next------------------------------
-markovNext :: String -> Map String (Map String Float) -> String
-markovNext current probDict = if (Map.member current probDict) then
-                                    getWord (probDict Map.! current)
-                              else "notOK"
+markovNext :: String -> Map String (Map String Float) -> [Float] -> String
+markovNext current probDict probs = if (Map.member current probDict) then
+                                        selectWord (addExtraProb probs (Map.toList (probDict Map.! current)))
+                                    else selectWord (addExtraProb probs (Map.toList (probDict Map.! "when")))
 
-getWord :: Map String Float -> String
-getWord subMap = fst (last (Map.toList subMap))
+addExtraProb :: [Float] -> [(String, Float)] -> [(String, Float)]
+addExtraProb (x:xs) [] = []                       
+addExtraProb [x] (y:ys) = ((fst y), (snd y) + x) : addExtraProb [x] ys
+addExtraProb (x:xs) (y:ys) = ((fst y), (snd y) + x) : addExtraProb xs ys
+
+selectWord :: [(String, Float)] -> String
+selectWord words = fst (returnMaxProb ("a", -0.1) words)
+
+returnMaxProb :: (String, Float) -> [(String, Float)] -> (String, Float)
+returnMaxProb maxProb [] = maxProb
+returnMaxProb maxProb (x:xs) = if ((snd x) > (snd maxProb)) then returnMaxProb x xs
+                               else returnMaxProb maxProb xs
+    
+addExponencialProb :: [(String, Float)] -> [Float] -> [(String, Float)]
+addExponencialProb [] _ = []
+addExponencialProb (x:xs) (y:ys) = (fst x, (snd x) + y) : addExponencialProb xs ys
 
 ------------------------ToDict---------------------------------
 
