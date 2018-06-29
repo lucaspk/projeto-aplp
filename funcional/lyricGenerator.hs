@@ -29,9 +29,6 @@ main = do
 
     let lyrics = selectGenre genre pop rap
 
-    Txts.lastWord
-    lastWord <- getLine
-
     Txts.wordsNumber
     wordsNum <- getLine
     let wordsNumber = read wordsNum :: Int
@@ -51,8 +48,6 @@ main = do
     probs3 <- evalRandIO $ dice 20
     probs4 <- evalRandIO $ dice 20
 
-   -- let generatedLyric = generateLyric probDict wordsNumber probs firstWord
-
     let lyric1 = (makeLyric probDict (div wordsNumber 4) [firstWord] probs1)
     
     let lyric2 = (makeLyric probDict (div wordsNumber 4) [(last lyric1)] probs2)
@@ -63,29 +58,90 @@ main = do
 
     let complete = ((lyric1 ++ (tail lyric2) ++ (tail lyric3) ++ (tail lyric4)))
 
-    putStr (intercalate " " complete)
+    putStrLn (intercalate " " complete)
 
     Txts.save
 
     save <- getLine
 
-    if (save == "yes") then do
-        appendFile "rap.txt" (intercalate " " [])
-        putStrLn("\nLyric saved!")
-    else do
-        putStrLn("\nOk!")
+    if (save == "save") then
+        saveOnBase (intercalate " " complete) genre
+    else if (save == "edit") then
+        editor (intercalate " " complete) genre
+    else putStrLn("\nThe lyric was discarded!")
 
     main
-    
---teste :: [String] -> Int -> [String]
---teste (x:xs) index = 
 
-generateLyric :: Map String (Map String Float) -> Int -> [Float] -> String -> [String]
-generateLyric probDict wordsNum probs firstword = ["oi"]
+editor :: String -> String -> IO()
+editor lyric genre = do
+
+    Txts.edit
+
+    operation <- getLine
+
+    let arrayLyric = mySplit (==' ') lyric
+
+    let operands = mySplit (==' ') operation
+
+    if ((head operands) == "1") then
+        showLyric (concat (intersperse " " (removeAll arrayLyric (last operands)))) genre
+    else if ((head operands) == "2") then
+        showLyric (concat (intersperse " " (editWordByName arrayLyric (last (init operands)) (last operands)))) genre
+    else if ((head operands) == "3") then
+        showLyric (concat (intersperse " " (addLineBreaker arrayLyric (last operands)))) genre
+    else if ((head operands) == "4") then
+        showLyric (concat (intersperse " " (addWordBefore arrayLyric (last (init operands)) (last operands)))) genre
+    else if ((head operands) == "5") then
+        saveOnBase lyric genre
+    else
+        main
+
+showLyric :: String -> String -> IO()
+showLyric str genre = do
+    putStrLn ("")
+    putStrLn (str)
+    editor str genre
+
+saveOnBase :: String -> String -> IO()
+saveOnBase lyric genre = do
+    putStrLn (lyric)
+    if (genre == "rap") then
+        appendFile "rap.txt" lyric
+    else 
+        appendFile "pop.txt" lyric
+
+------------------- Operations -----------------------------------
+removeAll :: [String] -> String -> [String]
+removeAll xs word = [x | x <- xs, x /= word]
+
+removeByIndex xs index = take (index - 1) xs ++ drop (index) xs
+
+editWordByName :: [String] -> String -> String -> [String]
+editWordByName [] oldWord newWord = []
+editWordByName (x:xs) oldWord newWord = if (x == oldWord) then
+                                            newWord : editWordByName xs oldWord newWord
+                                        else x : editWordByName xs oldWord newWord
+
+addWordBefore :: [String] -> String -> String -> [String]
+addWordBefore [] word newword = []
+addWordBefore (x:xs) word newword = if (x == word) then
+                                newword : x : addWordBefore xs word newword
+                            else x : addWordBefore xs word newword
+                                        
+
+addLineBreaker :: [String] -> String -> [String]
+addLineBreaker [] word = []
+addLineBreaker (x:xs) word = if (x == word) then
+                                (lineB x) : addLineBreaker xs word
+                            else x : addLineBreaker xs word
+
+lineB :: String -> String
+lineB = (++) "\n"
+------------------------------------------------------------------
 
 randomNumber :: (RandomGen g) => Rand g Float
 randomNumber = do
-      randomNumber <- getRandomR (0.0, 0.4)
+      randomNumber <- getRandomR (0.0, 0.5)
       return $ randomNumber
     
 dice :: RandomGen g => Int -> Rand g [Float]
@@ -107,7 +163,7 @@ makeLyric probDict wordsNumber array probs = makeLyric probDict (wordsNumber - 1
 markovNext :: String -> Map String (Map String Float) -> [Float] -> String
 markovNext current probDict probs = if (Map.member current probDict) then
                                         selectWord (addExtraProb probs (Map.toList (probDict Map.! current)))
-                                    else "hey"
+                                    else selectWord (addExtraProb probs (Map.toList (probDict Map.! "when")))
 
 addExtraProb :: [Float] -> [(String, Float)] -> [(String, Float)]
 addExtraProb (x:xs) [] = []                       
